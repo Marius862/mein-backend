@@ -5,12 +5,24 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Registrierung
+// Registrierung – immer als „kunde“
 router.post('/signup', async (req, res) => {
   const { email, password } = req.body;
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return res.status(400).send(error);
-  res.send(data);
+
+  // 1. Supabase Auth: Nutzer registrieren
+  const { data: signupData, error: signupError } = await supabase.auth.signUp({ email, password });
+  if (signupError) return res.status(400).send(signupError);
+
+  const userId = signupData.user?.id;
+  if (!userId) return res.status(500).send({ error: 'Kein User-ID erhalten' });
+
+  // 2. Eigene users-Tabelle: Eintrag mit Rolle „kunde“
+  const { error: insertError } = await supabase.from('users').insert([
+    { id: userId, rolle: 'kunde', kunde_id: null }
+  ]);
+  if (insertError) return res.status(500).send(insertError);
+
+  res.send(signupData);
 });
 
 // Login
