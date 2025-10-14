@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
   if (!identifier.includes('@')) {
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, email')
+      .select('email')
       .eq('username', identifier)
       .single();
 
@@ -52,10 +52,22 @@ router.post('/login', async (req, res) => {
     email = userData.email;
   }
 
+  // ✅ WICHTIG: Validierung hinzufügen
+  if (!email || !password) {
+    return res.status(400).send({ error: 'Email und Passwort erforderlich' });
+  }
+
+  // ✅ Supabase erwartet email + password
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return res.status(401).send(error);
+
+  if (error) {
+    console.error('Login-Fehler:', error);
+    return res.status(401).send(error);
+  }
+
   res.send(data);
 });
+
 
 // Profil abrufen
 router.get('/profil', async (req, res) => {
