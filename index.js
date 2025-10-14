@@ -13,6 +13,9 @@ app.use('/produkte', produkteRouter);
 const authRouter = require('./routes/auth');
 app.use('/auth', authRouter);
 
+const adminRouter = require('./routes/admin');
+app.use('/admin', adminRouter);
+
 // Testroute
 app.get('/', (req, res) => {
   res.send('Backend läuft!');
